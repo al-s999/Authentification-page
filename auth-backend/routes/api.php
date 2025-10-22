@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ForgotPasswordController;
 use App\Http\Controllers\Api\SocialiteController;
+use App\Http\Controllers\Api\FacebookWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,3 +32,6 @@ Route::get('/auth/{provider}/callback', [SocialiteController::class, 'handleProv
 // Rute Publik untuk Lupa & Reset Password
 Route::post('/forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword']);
+
+
+Route::post('/facebook/data-deletion', [FacebookWebhookController::class, 'handleDataDeletion']);
