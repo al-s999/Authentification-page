@@ -1,6 +1,4 @@
-// app/Http/Controllers/Api/FacebookWebhookController.php
-
-<?php
+<?php 
 
 namespace App\Http\Controllers\Api;
 
