@@ -15,10 +15,12 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchData() {
       try {
+        const apiKey = "ibOjeD1ZZ9YffyXfg3gSWcs8X2CQq9Dj";
+
         const [quotes, active, sectors] = await Promise.all([
-          fetch("https://financialmodelingprep.com/api/v3/quote/AAPL,MSFT,GOOGL,META").then(r => r.json()),
-          fetch("https://financialmodelingprep.com/api/v3/stock_market/actives").then(r => r.json()),
-          fetch("https://financialmodelingprep.com/api/v3/stock_market/sectors-performance").then(r => r.json()),
+        fetch(`https://financialmodelingprep.com/api/v3/quote/AAPL,MSFT,GOOGL,META?apikey=${apiKey}`).then(r => r.json()),
+        fetch(`https://financialmodelingprep.com/api/v3/stock_market/actives?apikey=${apiKey}`).then(r => r.json()),
+        fetch(`https://financialmodelingprep.com/api/v3/stock_market/sectors-performance?apikey=${apiKey}`).then(r => r.json()),
         ]);
         setQuoteData(quotes);
         setActives(active.slice(0, 6));
