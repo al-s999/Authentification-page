@@ -8,6 +8,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import { Toaster } from 'react-hot-toast';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import "./styles/auth.css"
 
 function App() {
   return (

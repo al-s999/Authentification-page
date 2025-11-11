@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import "../styles/auth.css";
 
 // Definisikan nilai awal form di luar komponen agar tidak dibuat ulang setiap render
 const initialRegisterForm = { name: '', email: '', password: '', password_confirmation: '' };
@@ -124,86 +125,88 @@ function AuthPage() {
 
     // --- Bagian Tampilan (JSX) ---
     return (
-        <div className={`container ${isContainerActive ? 'active' : ''}`} id="container">
-            {/* FORM REGISTRASI */}
-            <div className="form-container sign-up">
-                <form onSubmit={handleRegisterSubmit} noValidate>
-                    <h1>Create Account</h1>
-                    <div className="social-icons">
-                        <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('google'); }}>
-                            <i className="fa-brands fa-google-plus-g"></i>
-                        </a>
-                        <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('facebook'); }}>
-                            <i className="fa-brands fa-facebook-f"></i>
-                        </a>
-                        <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('github'); }}>
-                            <i className="fa-brands fa-github"></i>
-                        </a>
-                    </div>
-                    <span>or use your email for registration</span>
-                    
-                    <input name="name" type="text" placeholder="Name" value={registerForm.name} onChange={handleRegisterChange} onBlur={handleBlur} autoComplete='off'/>
-                    {errors.name && <span className="error-message">{errors.name}</span>}
+        <div className="auth-page">
+            <div className={`auth-container ${isContainerActive ? 'active' : ''}`} id="auth-container">
+                {/* FORM REGISTRASI */}
+                <div className="form-container sign-up">
+                    <form onSubmit={handleRegisterSubmit} noValidate>
+                        <h1>Create Account</h1>
+                        <div className="social-icons">
+                            <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('google'); }}>
+                                <i className="fa-brands fa-google-plus-g"></i>
+                            </a>
+                            <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('facebook'); }}>
+                                <i className="fa-brands fa-facebook-f"></i>
+                            </a>
+                            <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('github'); }}>
+                                <i className="fa-brands fa-github"></i>
+                            </a>
+                        </div>
+                        <span>or use your email for registration</span>
+                        
+                        <input name="name" type="text" placeholder="Name" value={registerForm.name} onChange={handleRegisterChange} onBlur={handleBlur} autoComplete='off'/>
+                        {errors.name && <span className="error-message">{errors.name}</span>}
 
-                    <input name="email" type="email" placeholder="Email" value={registerForm.email} onChange={handleRegisterChange} onBlur={handleBlur} autoComplete='off'/>
-                    {errors.email && <span className="error-message">{errors.email}</span>}
+                        <input name="email" type="email" placeholder="Email" value={registerForm.email} onChange={handleRegisterChange} onBlur={handleBlur} autoComplete='off'/>
+                        {errors.email && <span className="error-message">{errors.email}</span>}
 
-                    <div style={{ position: 'relative', width: '100%' }}>
-                        <input name="password" type={showPassword ? 'text' : 'password'} placeholder="Password" value={registerForm.password} onChange={handleRegisterChange} onBlur={handleBlur} autoComplete='off'/>
-                        <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '15px', top: '18px', cursor: 'pointer' }}></i>
-                    </div>
-                    {errors.password && <span className="error-message">{errors.password}</span>}
-                    
-                    <div style={{ position: 'relative', width: '100%' }}>
-                        <input name="password_confirmation" type={showPassword ? 'text' : 'password'} placeholder='Password Confirmation' value={registerForm.password_confirmation} onChange={handleRegisterChange} onBlur={handleBlur} autoComplete='off'/>
-                    </div>
-                    {errors.password_confirmation && <span className="error-message">{errors.password_confirmation}</span>}
-                    
-                    <button type='submit' disabled={loading}>{loading ? 'Signing Up...' : 'Sign Up'}</button>
-                </form>
-            </div>
+                        <div style={{ position: 'relative', width: '100%' }}>
+                            <input name="password" type={showPassword ? 'text' : 'password'} placeholder="Password" value={registerForm.password} onChange={handleRegisterChange} onBlur={handleBlur} autoComplete='off'/>
+                            <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '15px', top: '18px', cursor: 'pointer' }}></i>
+                        </div>
+                        {errors.password && <span className="error-message">{errors.password}</span>}
+                        
+                        <div style={{ position: 'relative', width: '100%' }}>
+                            <input name="password_confirmation" type={showPassword ? 'text' : 'password'} placeholder='Password Confirmation' value={registerForm.password_confirmation} onChange={handleRegisterChange} onBlur={handleBlur} autoComplete='off'/>
+                        </div>
+                        {errors.password_confirmation && <span className="error-message">{errors.password_confirmation}</span>}
+                        
+                        <button type='submit' disabled={loading}>{loading ? 'Signing Up...' : 'Sign Up'}</button>
+                    </form>
+                </div>
 
-            {/* FORM LOGIN */}
-            <div className="form-container sign-in">
-                <form onSubmit={handleLoginSubmit}>
-                    <h1>Sign In</h1>
-                    <div className="social-icons">
-                        <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('google'); }}>
-                            <i className="fa-brands fa-google-plus-g"></i>
-                        </a>
-                        <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('facebook'); }}>
-                            <i className="fa-brands fa-facebook-f"></i>
-                        </a>
-                        <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('github'); }}>
-                            <i className="fa-brands fa-github"></i>
-                        </a>
-                    </div>
-                    <span>or use your email password</span>
-                    
-                    <input name='email' type="email" placeholder="Email" value={loginForm.email} onChange={handleLoginChange} autoComplete='off'/>
-                    
-                    <div style={{ position: 'relative', width: '100%' }}>
-                        <input name='password' type={showPassword ? 'text' : 'password'} placeholder="Password" value={loginForm.password} onChange={handleLoginChange} autoComplete='off'/>
-                        <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '15px', top: '18px', cursor: 'pointer' }}></i>
-                    </div>
-                    
-                    <Link to="/forgot-password">Forgot Your Password?</Link>
-                    <button type="submit" disabled={loading}>{loading ? 'Signing In...' : 'Sign In'}</button>
-                </form>
-            </div>
+                {/* FORM LOGIN */}
+                <div className="form-container sign-in">
+                    <form onSubmit={handleLoginSubmit}>
+                        <h1>Sign In</h1>
+                        <div className="social-icons">
+                            <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('google'); }}>
+                                <i className="fa-brands fa-google-plus-g"></i>
+                            </a>
+                            <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('facebook'); }}>
+                                <i className="fa-brands fa-facebook-f"></i>
+                            </a>
+                            <a href="#" className="icon" onClick={(e) => { e.preventDefault(); handleSocialLogin('github'); }}>
+                                <i className="fa-brands fa-github"></i>
+                            </a>
+                        </div>
+                        <span>or use your email password</span>
+                        
+                        <input name='email' type="email" placeholder="Email" value={loginForm.email} onChange={handleLoginChange} autoComplete='off'/>
+                        
+                        <div style={{ position: 'relative', width: '100%' }}>
+                            <input name='password' type={showPassword ? 'text' : 'password'} placeholder="Password" value={loginForm.password} onChange={handleLoginChange} autoComplete='off'/>
+                            <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '15px', top: '18px', cursor: 'pointer' }}></i>
+                        </div>
+                        
+                        <Link to="/forgot-password">Forgot Your Password?</Link>
+                        <button type="submit" disabled={loading}>{loading ? 'Signing In...' : 'Sign In'}</button>
+                    </form>
+                </div>
 
-            {/* PANEL PENGGANTI (TOGGLE) */}
-            <div className="toggle-container">
-                <div className="toggle">
-                    <div className="toggle-panel toggle-left">
-                        <h1>Welcome Back!</h1>
-                        <p>Enter your personal details to use all of site features</p>
-                        <button className="hidden" id="login" onClick={handleLoginClick}>Sign In</button>
-                    </div>
-                    <div className="toggle-panel toggle-right">
-                        <h1>Hello, Friend!</h1>
-                        <p>Register with your personal details to use all of site features</p>
-                        <button className="hidden" id="register" onClick={handleRegisterClick}>Sign Up</button>
+                {/* PANEL PENGGANTI (TOGGLE) */}
+                <div className="toggle-container">
+                    <div className="toggle">
+                        <div className="toggle-panel toggle-left">
+                            <h1>Welcome Back!</h1>
+                            <p>Enter your personal details to use all of site features</p>
+                            <button className="hidden" id="login" onClick={handleLoginClick}>Sign In</button>
+                        </div>
+                        <div className="toggle-panel toggle-right">
+                            <h1>Hello, Friend!</h1>
+                            <p>Register with your personal details to use all of site features</p>
+                            <button className="hidden" id="register" onClick={handleRegisterClick}>Sign Up</button>
+                        </div>
                     </div>
                 </div>
             </div>

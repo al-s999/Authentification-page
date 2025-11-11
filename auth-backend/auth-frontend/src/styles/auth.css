@@ -1,0 +1,190 @@
+/* ============================
+   AUTH (Dark Blue, Split Panel)
+   ============================ */
+
+/* Font & reset ringan */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+* { box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+:root { --blue-1:#0a1630; --blue-2:#091326; --blue-3:#0b1f3c; --line:#8bc8ff; --glow:rgba(0,200,255,.18); }
+
+/* ---------- POSISI TENGAH LAYAR ---------- */
+/* Tidak bergantung pada body/layout lain */
+#auth-container {
+  position: fixed;                 /* kunci di viewport */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);/* center X & Y */
+  width: 980px;                    /* dua kolom lebih lega */
+  max-width: calc(100vw - 64px);
+  min-height: 520px;
+  border-radius: 22px;
+  overflow: hidden;
+  color: #fff;
+  background: transparent;
+  box-shadow: 0 18px 55px rgba(0,0,0,.45);
+  z-index: 2;
+}
+
+/* ---------- PANEL FORM (50%) ---------- */
+.form-container {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  transition: all .6s ease-in-out;
+}
+
+/* background form: biru gelap → hitam */
+#auth-container form{
+  height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 0 40px;
+  background: linear-gradient(180deg, var(--blue-3), #05060b);
+  color:#fff;
+}
+
+/* kiri = Sign In (muncul default) */
+.sign-in { left: 0; z-index: 2; }
+#auth-container.active .sign-in { transform: translateX(100%); }
+
+/* kanan = Sign Up (muncul saat active) */
+.sign-up { left: 0; opacity: 0; z-index: 1; }
+#auth-container.active .sign-up {
+  transform: translateX(100%);
+  opacity: 1; z-index: 5;
+}
+
+/* ---------- INPUT & BUTTON ---------- */
+#auth-container input{
+  width: 100%;
+  margin: 8px 0;
+  padding: 11px 14px;
+  font-size: 13px;
+  color:#eef7ff;
+  background: transparent;
+  border:1px solid var(--line);
+  border-radius: 9px;
+  outline: none;
+  transition: border-color .25s, box-shadow .25s;
+}
+#auth-container input::placeholder{ color:#cfe7ff; opacity:.85; }
+#auth-container input:focus{
+  border-color:#00c3ff;
+  box-shadow: 0 0 0 4px rgba(0,195,255,.12);
+}
+
+#auth-container button{
+  margin-top: 10px;
+  padding: 10px 44px;
+  font-size: 12px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+  color:#fff; background: transparent; border:1px solid var(--line);
+  border-radius: 10px; cursor: pointer; transition: transform .15s, background .25s, color .25s, box-shadow .25s;
+}
+#auth-container button:hover{ transform: translateY(-1px); background: rgba(0, 180, 255, .14); color:#9fe6ff; box-shadow: 0 0 18px var(--glow); }
+#auth-container button:disabled{ opacity:.55; cursor:not-allowed; }
+
+/* ---------- SOCIAL ---------- */
+.social-icons{ margin: 16px 0; display:flex; gap:10px; }
+.social-icons a{
+  width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center;
+  border:1px solid var(--line); border-radius:50%; color:#fff; transition: transform .2s, border-color .2s, color .2s;
+}
+.social-icons a:hover{ transform:scale(1.1); border-color:#00d1ff; color:#00d1ff; }
+
+/* ---------- TOGGLE (50%) ---------- */
+.toggle-container{
+  position: absolute; top:0; left:50%; width:50%; height:100%;
+  overflow:hidden; transition: all .6s ease-in-out;
+  border-radius: 150px 0 0 120px; z-index: 1000;
+}
+#auth-container.active .toggle-container{
+  transform: translateX(-100%);
+  border-radius: 0 150px 120px 0;
+}
+
+/* background toggle: biru tua glossy */
+.toggle{
+  position: relative; left:-100%; width:200%; height:100%;
+  transition: all .6s ease-in-out;
+  background: radial-gradient(1200px 600px at 70% 20%, rgba(0,120,255,.22), transparent 60%),
+              linear-gradient(135deg, #0b1731, #071225 66%, #050811);
+  box-shadow: inset 0 0 60px rgba(0, 180, 255, .08);
+}
+#auth-container.active .toggle{ transform: translateX(50%); }
+
+.toggle-panel{
+  position:absolute; top:0; width:50%; height:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:0 40px; text-align:center; transition: all .6s ease-in-out;
+}
+.toggle-left{ transform: translateX(-200%); }
+#auth-container.active .toggle-left{ transform: translateX(0); }
+.toggle-right{ right:0; transform: translateX(0); }
+#auth-container.active .toggle-right{ transform: translateX(200%); }
+
+/* ---------- TEXT & ERROR ---------- */
+#auth-container h1{ margin-bottom:12px; }
+#auth-container span{ font-size:12px; opacity:.9; }
+
+.error-message{
+  color:#ff7b7b; font-size:.8rem; margin-top:4px; min-height:18px; width:100%; text-align:left;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 860px){
+  #auth-container{ width: 92vw; min-height: 520px; }
+}
+@media (max-width: 720px){
+  /* Di layar kecil, sembunyikan toggle, tampilkan form stacked */
+  .toggle-container{ display:none; }
+  .form-container{ position: relative; width:100%; transform:none !important; opacity:1 !important; }
+  .sign-in, .sign-up{ z-index:unset; }
+}
+
+/* ===== TRANSPARENT BACKGROUND + BUBBLE SHAPE (ONLY INACTIVE) ===== */
+
+/* Jangan beri background ke wrapper toggle */
+#auth-container .toggle {
+  background: transparent;
+}
+
+/* Gaya dasar panel toggle */
+#auth-container .toggle-left,
+#auth-container .toggle-right {
+  padding: 0 48px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  transition: background 0.5s ease, border-color 0.5s ease,
+              filter 0.5s ease, border-radius 0.5s ease;
+}
+
+/* DEFAULT: kiri (Sign In) AKTIF, solid; kanan (Sign Up) NONAKTIF, transparan */
+#auth-container .toggle-left {
+  background: linear-gradient(180deg, rgba(8, 20, 18, 0.92), rgba(5, 9, 10, 0.92));
+  border-radius: 16px 0 0 16px;                     /* sisi kiri kotak */
+  filter: none;
+}
+
+#auth-container .toggle-right {
+  background: rgba(8, 18, 24, 0.18);                /* transparan utk nonaktif */
+  border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  border-radius: 0 28px 28px 160px;                 /* bubble curve kanan-bawah */
+}
+
+/* ACTIVE MODE: saat container .active, kanan jadi aktif (solid) dan kiri transparan */
+#auth-container.active .toggle-right {
+  background: linear-gradient(180deg, rgba(8, 20, 18, 0.92), rgba(5, 9, 10, 0.92));
+  border-color: rgba(255, 255, 255, 0.06);
+  border-radius: 0 16px 16px 16px;
+  filter: none;
+}
+
+#auth-container.active .toggle-left {
+  background: rgba(8, 18, 24, 0.18);                /* transparan utk nonaktif */
+  border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  border-radius: 160px 28px 28px 0;                 /* bubble curve kiri-atas */
+}
