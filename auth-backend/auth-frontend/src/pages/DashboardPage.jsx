@@ -3,31 +3,42 @@ import React, { useEffect, useRef, useState } from "react";
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
-  const [quoteData, setQuoteData] = useState([]);
-  const [actives, setActives] = useState([]);
-  const [sectorPerf, setSectorPerf] = useState([]);
+  const [stocks, setStocks] = useState([]);
   const [error, setError] = useState("");
-
   const lineRef = useRef(null);
   const barRef = useRef(null);
 
-  // Fetch data dari Financial Modeling Prep
   useEffect(() => {
     async function fetchData() {
       try {
-        const apiKey = "ibOjeD1ZZ9YffyXfg3gSWcs8X2CQq9Dj";
+        const headers = {
+          "x-rapidapi-host": "apidojo-yahoo-finance-v1.p.rapidapi.com",
+          "x-rapidapi-key": "4694fcd259msh4ce08ee6b31d275p1bb825jsn3afa5f1e1c2a",
+        };
 
-        const [quotes, active, sectors] = await Promise.all([
-        fetch(`https://financialmodelingprep.com/api/v3/quote/AAPL,MSFT,GOOGL,META?apikey=${apiKey}`).then(r => r.json()),
-        fetch(`https://financialmodelingprep.com/api/v3/stock_market/actives?apikey=${apiKey}`).then(r => r.json()),
-        fetch(`https://financialmodelingprep.com/api/v3/stock_market/sectors-performance?apikey=${apiKey}`).then(r => r.json()),
-        ]);
-        setQuoteData(quotes);
-        setActives(active.slice(0, 6));
-        setSectorPerf(sectors.slice(0, 12));
+        const symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META"];
+        const promises = symbols.map((sym) =>
+          fetch(
+            `https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v2/get-summary?symbol=${sym}&region=US`,
+            { headers }
+          ).then((r) => r.json())
+        );
+
+        const results = await Promise.all(promises);
+        const formatted = results
+          .filter((r) => r.price && r.price.regularMarketPrice)
+          .map((r) => ({
+            symbol: r.price.symbol,
+            name: r.price.shortName,
+            price: r.price.regularMarketPrice.raw,
+            change: r.price.regularMarketChangePercent.raw,
+            marketCap: r.price.marketCap?.raw ?? 0,
+          }));
+
+        setStocks(formatted);
       } catch (err) {
         console.error(err);
-        setError("Gagal memuat data dari API Finansial.");
+        setError("Gagal memuat data dari Yahoo Finance API (RapidAPI).");
       } finally {
         setLoading(false);
       }
@@ -35,22 +46,22 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  // Draw line chart untuk sektor performance
+  // === Line Chart: Market Cap ===
   useEffect(() => {
-    if (sectorPerf.length === 0) return;
+    if (stocks.length === 0) return;
     const ctx = lineRef.current.getContext("2d");
     const w = (lineRef.current.width = lineRef.current.clientWidth);
     const h = (lineRef.current.height = lineRef.current.clientHeight);
-    const max = Math.max(...sectorPerf.map(s => s.changesPercentage));
+    const max = Math.max(...stocks.map((s) => s.marketCap));
     let t = 0;
     function draw() {
       ctx.clearRect(0, 0, w, h);
       ctx.beginPath();
       ctx.lineWidth = 3;
       ctx.strokeStyle = "#00ff88";
-      sectorPerf.forEach((s, i) => {
-        const x = (i / (sectorPerf.length - 1)) * (w - 20) + 10;
-        const y = h - ((s.changesPercentage / max) * (h - 20) * t + 10);
+      stocks.forEach((s, i) => {
+        const x = (i / (stocks.length - 1)) * (w - 20) + 10;
+        const y = h - ((s.marketCap / max) * (h - 20) * t + 10);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
@@ -67,38 +78,37 @@ export default function DashboardPage() {
       if (t <= 1) requestAnimationFrame(draw);
     }
     draw();
-  }, [sectorPerf]);
+  }, [stocks]);
 
-  // Draw bar chart untuk saham aktif
+  // === Bar Chart: %Change ===
   useEffect(() => {
-    if (actives.length === 0) return;
+    if (stocks.length === 0) return;
     const ctx = barRef.current.getContext("2d");
     const w = (barRef.current.width = barRef.current.clientWidth);
     const h = (barRef.current.height = barRef.current.clientHeight);
-    const max = Math.max(...actives.map(a => a.changesPercentage));
+    const max = Math.max(...stocks.map((s) => Math.abs(s.change)));
     let t = 0;
     function draw() {
       ctx.clearRect(0, 0, w, h);
       const gap = 16;
-      const bw = (w - gap * (actives.length + 1)) / actives.length;
-      actives.forEach((a, i) => {
+      const bw = (w - gap * (stocks.length + 1)) / stocks.length;
+      stocks.forEach((s, i) => {
         const x = gap + i * (bw + gap);
-        const bh = ((a.changesPercentage / max) * (h - 30)) * t;
-        ctx.fillStyle = "rgba(0,255,100,0.85)";
+        const bh = ((Math.abs(s.change) / max) * (h - 30)) * t;
+        ctx.fillStyle = s.change > 0 ? "rgba(0,255,100,0.85)" : "rgba(255,60,60,0.85)";
         ctx.fillRect(x, h - bh - 10, bw, bh);
       });
       t += 0.03;
       if (t <= 1) requestAnimationFrame(draw);
     }
     draw();
-  }, [actives]);
+  }, [stocks]);
 
-  if (loading) return <div className="loading">Memuat data keuangan...</div>;
+  if (loading) return <div className="loading">Memuat data saham...</div>;
   if (error) return <div className="error">{error}</div>;
 
-  const totalCap = quoteData.reduce((sum, q) => sum + (q.marketCap || 0), 0);
-  const totalChange = quoteData.reduce((sum, q) => sum + q.changesPercentage, 0);
-  const todayTop = actives[0];
+  const totalCap = stocks.reduce((sum, s) => sum + s.marketCap, 0);
+  const avgChange = stocks.reduce((sum, s) => sum + s.change, 0) / stocks.length;
 
   return (
     <>
@@ -107,69 +117,65 @@ export default function DashboardPage() {
       <div className="dashboard-grid">
         {/* === STAT CARDS === */}
         <div className="stat-card">
-          <h3>Market Cap</h3>
+          <h3>Total Market Cap</h3>
           <p className="value">${(totalCap / 1e12).toFixed(2)}T</p>
         </div>
         <div className="stat-card">
-          <h3>Active Stocks</h3>
-          <p className="value">{actives.length}</p>
+          <h3>Top Stock</h3>
+          <p className="value">{stocks[0]?.symbol}</p>
         </div>
         <div className="stat-card">
           <h3>Avg Change</h3>
-          <p className="value">{totalChange.toFixed(2)}%</p>
+          <p className="value">{avgChange.toFixed(2)}%</p>
         </div>
         <div className="stat-card">
-          <h3>Top Gainer</h3>
-          <p className="value">{todayTop ? todayTop.symbol : "—"}</p>
+          <h3>Stocks</h3>
+          <p className="value">{stocks.length}</p>
         </div>
 
         {/* === LINE CHART === */}
         <div className="chart-card line">
-          <h3>Sector Performance</h3>
+          <h3>Market Cap Overview</h3>
           <canvas ref={lineRef}></canvas>
         </div>
 
         {/* === BAR CHART === */}
         <div className="chart-card bar">
-          <h3>Active Stocks %Change</h3>
+          <h3>Change % Overview</h3>
           <canvas ref={barRef}></canvas>
         </div>
 
-        {/* === PROJECTS === */}
+        {/* === TABLE === */}
         <div className="table-card">
-          <h3>Active Stocks Overview</h3>
+          <h3>Stock Summary</h3>
           <table>
             <thead>
               <tr>
                 <th>Symbol</th>
                 <th>Price</th>
-                <th>Change %</th>
+                <th>Change</th>
               </tr>
             </thead>
             <tbody>
-              {actives.map((a) => (
-                <tr key={a.symbol}>
-                  <td>{a.symbol}</td>
-                  <td>${a.price.toFixed(2)}</td>
-                  <td className={a.changesPercentage > 0 ? "pos" : "neg"}>
-                    {a.changesPercentage.toFixed(2)}%
-                  </td>
+              {stocks.map((s) => (
+                <tr key={s.symbol}>
+                  <td>{s.symbol}</td>
+                  <td>${s.price.toFixed(2)}</td>
+                  <td className={s.change > 0 ? "pos" : "neg"}>{s.change.toFixed(2)}%</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* === ORDERS / UPDATES === */}
+        {/* === LIST === */}
         <div className="list-card">
-          <h3>Recent Quote Updates</h3>
+          <h3>Recent Stocks</h3>
           <ul>
-            {quoteData.map((q) => (
-              <li key={q.symbol}>
-                <strong>{q.symbol}</strong>: ${q.price.toFixed(2)} —{" "}
-                <span className={q.changesPercentage > 0 ? "pos" : "neg"}>
-                  {q.changesPercentage.toFixed(2)}%
-                </span>
+            {stocks.map((s) => (
+              <li key={s.symbol}>
+                <strong>{s.symbol}</strong>: ${s.price.toFixed(2)} —{" "}
+                <span className={s.change > 0 ? "pos" : "neg"}>{s.change.toFixed(2)}%</span>
               </li>
             ))}
           </ul>
