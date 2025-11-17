@@ -171,14 +171,14 @@
   background: rgba(8, 18, 24, 0.18);                /* transparan utk nonaktif */
   border-color: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(6px);
-  border-radius: 0 28px 28px 160px;                 /* bubble curve kanan-bawah */
+  border-radius: 0 0 0 0;                 /* bubble curve kanan-bawah */
 }
 
 /* ACTIVE MODE: saat container .active, kanan jadi aktif (solid) dan kiri transparan */
 #auth-container.active .toggle-right {
   background: linear-gradient(180deg, rgba(8, 20, 18, 0.92), rgba(5, 9, 10, 0.92));
   border-color: rgba(255, 255, 255, 0.06);
-  border-radius: 0 16px 16px 16px;
+  border-radius: 0 0 0 0;
   filter: none;
 }
 
@@ -186,5 +186,5 @@
   background: rgba(8, 18, 24, 0.18);                /* transparan utk nonaktif */
   border-color: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(6px);
-  border-radius: 160px 28px 28px 0;                 /* bubble curve kiri-atas */
+  border-radius: 0 0 0 0;                 /* bubble curve kiri-atas */
 }
