@@ -653,3 +653,339 @@
     justify-content: space-between;
   }
 }
+
+/* === WEATHER PAGE === */
+
+.weather-page {
+  position: relative;
+  margin-top: 10px;
+  padding: 18px 0 8px;
+  background: radial-gradient(circle at 0 0, rgba(4, 26, 55, 0.9), rgba(1, 3, 15, 1));
+  border-radius: 20px;
+  border: 1px solid rgba(0, 180, 255, 0.25);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+/* efek "bintang" halus */
+.weather-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(2px 2px at 10% 20%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1.5px 1.5px at 70% 40%, rgba(255, 255, 255, 0.25), transparent),
+    radial-gradient(1px 1px at 30% 80%, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.weather-top {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr);
+  gap: 18px;
+  padding: 0 22px 20px;
+}
+
+/* error dan loading */
+
+.weather-error {
+  margin: 0 22px 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(140, 29, 29, 0.9);
+  border: 1px solid rgba(255, 120, 120, 0.7);
+  font-size: 0.8rem;
+  color: #ffecec;
+}
+
+.weather-loading {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.weather-placeholder {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+/* kartu utama cuaca saat ini */
+
+.weather-current-card {
+  background: radial-gradient(circle at 0 0, rgba(0, 120, 200, 0.22), rgba(0, 0, 30, 0.95));
+  border-radius: 18px;
+  padding: 16px 18px 14px;
+  border: 1px solid rgba(0, 190, 255, 0.45);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.15);
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.weather-current-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.weather-current-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weather-location-label {
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #aee8ff;
+}
+
+.weather-current-temp {
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.weather-current-desc {
+  font-size: 0.9rem;
+  text-transform: capitalize;
+  opacity: 0.9;
+}
+
+.weather-current-time {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.weather-current-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weather-icon-large {
+  width: 86px;
+  height: 86px;
+}
+
+/* detail baris bawah */
+
+.weather-current-detail {
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.weather-detail-item {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(140, 227, 255, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8rem;
+}
+
+.weather-detail-item .label {
+  opacity: 0.7;
+}
+
+.weather-detail-item .value {
+  font-weight: 600;
+}
+
+/* kartu perkiraan per jam */
+
+.weather-hourly-card {
+  background: rgba(0, 8, 32, 0.95);
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 150, 255, 0.35);
+  box-shadow: 0 0 16px rgba(0, 160, 255, 0.18);
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-hourly-card h3 {
+  font-size: 0.95rem;
+  color: #7fe0ff;
+  margin-bottom: 8px;
+}
+
+.weather-hourly-list {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.weather-hourly-item {
+  display: grid;
+  grid-template-columns: 70px 32px 70px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(10, 20, 40, 0.85);
+  font-size: 0.8rem;
+}
+
+.weather-hourly-item:nth-child(odd) {
+  background: rgba(12, 28, 56, 0.9);
+}
+
+.weather-hour {
+  font-weight: 600;
+  color: #c7f3ff;
+}
+
+.weather-icon-small {
+  width: 26px;
+  height: 26px;
+}
+
+.weather-hour-temp {
+  font-weight: 500;
+}
+
+.weather-hour-desc {
+  text-transform: capitalize;
+  opacity: 0.85;
+}
+
+/* tabel ringkasan */
+
+.weather-table-wrapper {
+  position: relative;
+  padding: 12px 22px 20px;
+}
+
+.weather-table-wrapper h3 {
+  color: #00e0ff;
+  margin-bottom: 10px;
+}
+
+.weather-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* search & suggestion weather */
+
+.weather-actions {
+  position: relative;
+  align-items: flex-start;
+}
+
+.weather-search-form {
+  display: flex;
+  gap: 8px;
+}
+
+.primary-btn,
+.secondary-btn {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-btn {
+  background: rgba(0, 200, 255, 0.9);
+  border-color: rgba(0, 240, 255, 0.9);
+  color: #001018;
+  font-weight: 600;
+}
+
+.primary-btn:hover {
+  box-shadow: 0 0 14px rgba(0, 255, 255, 0.7);
+}
+
+.secondary-btn {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(120, 220, 255, 0.7);
+  color: #dffaff;
+}
+
+.secondary-btn:hover {
+  background: rgba(0, 40, 60, 0.9);
+}
+
+.weather-suggestions {
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: 260px;
+  max-width: 100%;
+  background: rgba(0, 6, 20, 0.98);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 180, 255, 0.6);
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.6);
+  padding: 6px;
+  z-index: 15;
+}
+
+.weather-suggestion-item {
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  border: none;
+  background: transparent;
+  color: #e5f9ff;
+  cursor: pointer;
+}
+
+.weather-suggestion-item:hover {
+  background: rgba(0, 140, 255, 0.3);
+}
+
+/* RESPONSIVE WEATHER */
+
+@media (max-width: 960px) {
+  .weather-page {
+    border-radius: 16px;
+  }
+
+  .weather-top {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 16px;
+  }
+
+  .weather-table-wrapper {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .weather-current-card {
+    padding: 14px;
+  }
+
+  .weather-current-main {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .weather-current-temp {
+    font-size: 2rem;
+  }
+
+  .weather-hourly-item {
+    grid-template-columns: 60px 28px 60px minmax(0, 1fr);
+    font-size: 0.78rem;
+  }
+}

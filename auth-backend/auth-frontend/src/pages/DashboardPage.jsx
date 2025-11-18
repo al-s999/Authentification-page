@@ -38,6 +38,7 @@ function DashboardPage() {
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [currentWeather, setCurrentWeather] = useState(null);
   const [hourlyWeather, setHourlyWeather] = useState([]);
+  const [multiCityWeather, setMultiCityWeather] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [geoError, setGeoError] = useState('');
 
@@ -111,6 +112,7 @@ function DashboardPage() {
     // otomatis coba lokasi saat ini saat pertama kali buka weather
     if (!currentWeather && navigator.geolocation) {
       handleUseCurrentLocation();
+      fetchIndonesiaCities();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePage]);
@@ -184,6 +186,8 @@ function DashboardPage() {
   });
 
   // ==== WEATHER UTILS ====
+  const DEFAULT_WIB_OFFSET = 7 * 3600; // WIB fallback (UTC+7)
+
   const degToCompass = (num) => {
     if (num === undefined || num === null) return '-';
     const val = Math.floor(num / 22.5 + 0.5);
@@ -210,105 +214,162 @@ function DashboardPage() {
 
   const formatTime = (timestamp, timezoneOffsetSec) => {
     if (!timestamp) return '-';
-    const date = new Date((timestamp + timezoneOffsetSec) * 1000);
+
+    // Gunakan offset dari API bila ada, jika tidak fallback ke WIB (UTC+7)
+    const cityOffsetSec =
+      typeof timezoneOffsetSec === 'number'
+        ? timezoneOffsetSec
+        : DEFAULT_WIB_OFFSET;
+
+    // Offset zona waktu browser (dalam detik)
+    const localOffsetSec = -new Date().getTimezoneOffset() * 60;
+
+    // Sesuaikan UNIX time supaya hasil akhirnya menampilkan jam di kota target
+    const adjustedUnix = timestamp + cityOffsetSec - localOffsetSec;
+
+    const date = new Date(adjustedUnix * 1000);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   // ==== WEATHER: FETCH BY KOORDINAT ====
-  const fetchWeatherByCoords = async (lat, lon, label) => {
-    if (!WEATHER_API_KEY) {
-      setGeoError("API key tidak ditemukan. Pastikan sudah diisi.");
-      return;
-    }
-
-    try {
-      setWeatherLoading(true);
-      setGeoError("");
-
-      const currentRes = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=id`
-      );
-
-      const currentJson = await currentRes.json();
-      if (!currentRes.ok) {
-        throw new Error(currentJson.message || "Gagal mengambil cuaca.");
+    const fetchWeatherByCoords = async (lat, lon, label) => {
+      if (!WEATHER_API_KEY) {
+        setGeoError("API key tidak ditemukan. Pastikan sudah diisi.");
+        return;
       }
 
-      const forecastRes = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=id&cnt=8`
-      );
+      try {
+        setWeatherLoading(true);
+        setGeoError("");
 
-      const forecastJson = await forecastRes.json();
-      if (!forecastRes.ok) {
-        throw new Error(forecastJson.message || "Gagal mengambil perkiraan cuaca.");
+        const currentRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=id`
+        );
+
+        const currentJson = await currentRes.json();
+        if (!currentRes.ok) {
+          throw new Error(currentJson.message || "Gagal mengambil cuaca.");
+        }
+
+        const forecastRes = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=id&cnt=8`
+        );
+
+        const forecastJson = await forecastRes.json();
+        if (!forecastRes.ok) {
+          throw new Error(forecastJson.message || "Gagal mengambil perkiraan cuaca.");
+        }
+
+        // label nama kota dari API (kota + negara)
+        const apiPlaceLabel = `${currentJson.name || ""}${
+          currentJson.sys?.country ? `, ${currentJson.sys.country}` : ""
+        }`;
+
+        // kalau label dikirim DAN bukan "Lokasi saat ini", pakai label tersebut.
+        // kalau tidak, pakai nama kota dari API (ini untuk lokasi saat ini).
+        const finalPlaceLabel =
+          label && label !== "Lokasi saat ini" ? label : apiPlaceLabel;
+
+        // SET CURRENT WEATHER
+        setCurrentWeather({
+          placeLabel: finalPlaceLabel,
+          temp: currentJson.main?.temp,
+          humidity: currentJson.main?.humidity,
+          windSpeed: currentJson.wind?.speed,
+          windDeg: currentJson.wind?.deg,
+          description: currentJson.weather?.[0]?.description || "",
+          icon: currentJson.weather?.[0]?.icon || "01d",
+          timezoneOffset:
+            typeof currentJson.timezone === "number"
+              ? currentJson.timezone
+              : DEFAULT_WIB_OFFSET,
+          time: currentJson.dt,
+        });
+
+        // SET HOURLY FORECAST (tetap sama)
+        const hourly = Array.isArray(forecastJson.list)
+          ? forecastJson.list.map((item) => ({
+              dt: item.dt,
+              temp: item.main?.temp,
+              humidity: item.main?.humidity,
+              windSpeed: item.wind?.speed,
+              windDeg: item.wind?.deg,
+              description: item.weather?.[0]?.description || "",
+              icon: item.weather?.[0]?.icon || "01d",
+            }))
+          : [];
+
+        setHourlyWeather(hourly);
+      } catch (err) {
+        console.error("Gagal mengambil data cuaca:", err);
+        setGeoError(err.message);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+
+    const fetchIndonesiaCities = async () => {
+      const cities = [
+        { name: "Surabaya", lat: -7.2575, lon: 112.7521 },
+        { name: "Jakarta", lat: -6.2000, lon: 106.8166 },
+        { name: "Bandung", lat: -6.9175, lon: 107.6191 },
+        { name: "Medan", lat: 3.5952, lon: 98.6722 },
+        { name: "Denpasar", lat: -8.6500, lon: 115.2167 },
+      ];
+
+      const results = [];
+
+      for (let c of cities) {
+        const res = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${c.lat}&lon=${c.lon}&units=metric&lang=id&appid=${WEATHER_API_KEY}`
+        );
+        const json = await res.json();
+        results.push({
+          city: `${c.name}, ID`,
+          time: json.dt,
+          desc: json.weather?.[0]?.description || "",
+          temp: json.main?.temp,
+          humidity: json.main?.humidity,
+          windSpeed: json.wind?.speed,
+          windDeg: json.wind?.deg,
+          timezoneOffset: json.timezone,
+        });
       }
 
-      // SET CURRENT WEATHER
-      setCurrentWeather({
-        placeLabel:
-          label ||
-          `${currentJson.name || ""}${
-            currentJson.sys?.country ? `, ${currentJson.sys.country}` : ""
-          }`,
-        temp: currentJson.main?.temp,
-        humidity: currentJson.main?.humidity,
-        windSpeed: currentJson.wind?.speed,
-        windDeg: currentJson.wind?.deg,
-        description: currentJson.weather?.[0]?.description || "",
-        icon: currentJson.weather?.[0]?.icon || "01d",
-        timezoneOffset: currentJson.timezone || 0,
-        time: currentJson.dt,
-      });
+      setMultiCityWeather(results);
+    };
 
-      // SET HOURLY FORECAST
-      const hourly = Array.isArray(forecastJson.list)
-        ? forecastJson.list.map((item) => ({
-            dt: item.dt,
-            temp: item.main?.temp,
-            humidity: item.main?.humidity,
-            windSpeed: item.wind?.speed,
-            windDeg: item.wind?.deg,
-            description: item.weather?.[0]?.description || "",
-            icon: item.weather?.[0]?.icon || "01d",
-          }))
-        : [];
-
-      setHourlyWeather(hourly);
-    } catch (err) {
-      console.error("Gagal mengambil data cuaca:", err);
-      setGeoError(err.message);
-    } finally {
-      setWeatherLoading(false);
-    }
-  };
 
 
   // ==== WEATHER: GUNAKAN LOKASI SAAT INI ====
-  const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setGeoError('Browser tidak mendukung geolokasi.');
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setSelectedPlace({
-          name: 'Lokasi saat ini',
-          country: '',
-          lat: latitude,
-          lon: longitude,
-        });
-        fetchWeatherByCoords(latitude, longitude, 'Lokasi saat ini');
-      },
-      (err) => {
-        console.error(err);
-        setGeoError(
-          'Gagal mendapatkan lokasi. Pastikan izin lokasi diaktifkan.'
-        );
+    const handleUseCurrentLocation = () => {
+      if (!navigator.geolocation) {
+        setGeoError('Browser tidak mendukung geolokasi.');
+        return;
       }
-    );
-  };
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setSelectedPlace({
+            name: 'Lokasi saat ini',
+            country: '',
+            lat: latitude,
+            lon: longitude,
+          });
+          // jangan kirim label, biar nama kota dari API yang dipakai
+          fetchWeatherByCoords(latitude, longitude);
+        },
+        (err) => {
+          console.error(err);
+          setGeoError(
+            'Gagal mendapatkan lokasi. Pastikan izin lokasi diaktifkan.'
+          );
+        }
+      );
+    };
+
+
 
   // ==== WEATHER: SEARCH SUGGESTION ====
   const handleWeatherSearchChange = async (e) => {
@@ -717,7 +778,7 @@ function DashboardPage() {
                           {currentWeather.time
                             ? formatTime(
                                 currentWeather.time,
-                                currentWeather.timezoneOffset || 0
+                                currentWeather.timezoneOffset
                               )
                             : ''}
                         </p>
@@ -777,7 +838,7 @@ function DashboardPage() {
                         {currentWeather
                           ? formatTime(
                               item.dt,
-                              currentWeather.timezoneOffset || 0
+                              currentWeather.timezoneOffset
                             )
                           : ''}
                       </span>
@@ -820,13 +881,14 @@ function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Cuaca Lokasi Saat Ini */}
                   {currentWeather && (
                     <tr>
                       <td>{currentWeather.placeLabel}</td>
                       <td>
                         {formatTime(
                           currentWeather.time,
-                          currentWeather.timezoneOffset || 0
+                          currentWeather.timezoneOffset
                         )}
                       </td>
                       <td>{currentWeather.description}</td>
@@ -850,44 +912,24 @@ function DashboardPage() {
                       </td>
                     </tr>
                   )}
-                  {currentWeather &&
-                    hourlyWeather.map((item) => (
-                      <tr key={`tbl-${item.dt}`}>
-                        <td>{currentWeather.placeLabel}</td>
-                        <td>
-                          {formatTime(
-                            item.dt,
-                            currentWeather.timezoneOffset || 0
-                          )}
-                        </td>
-                        <td>{item.description}</td>
-                        <td>
-                          {item.temp != null
-                            ? `${item.temp.toFixed(1)}°C`
-                            : '-'}
-                        </td>
-                        <td>
-                          {item.humidity != null
-                            ? `${item.humidity}%`
-                            : '-'}
-                        </td>
-                        <td>
-                          {item.windSpeed != null
-                            ? `${item.windSpeed.toFixed(1)} m/s`
-                            : '-'}{' '}
-                          {item.windDeg != null
-                            ? degToCompass(item.windDeg)
-                            : ''}
-                        </td>
-                      </tr>
-                    ))}
-                  {!currentWeather && (
-                    <tr>
-                      <td colSpan={6} style={{ textAlign: 'center' }}>
-                        Belum ada data untuk ditampilkan.
+
+                  {/* Cuaca Banyak Kota Indonesia */}
+                  {multiCityWeather.map((item, index) => (
+                    <tr key={`indo-${index}`}>
+                      <td>{item.city}</td>
+                      <td>{formatTime(item.time, item.timezoneOffset)}</td>
+                      <td>{item.desc}</td>
+                      <td>
+                        {item.temp != null
+                          ? `${item.temp.toFixed(1)}°C`
+                          : '-'}
+                      </td>
+                      <td>{item.humidity}%</td>
+                      <td>
+                        {item.windSpeed?.toFixed(1)} m/s {degToCompass(item.windDeg)}
                       </td>
                     </tr>
-                  )}
+                  ))}
                 </tbody>
               </table>
             </motion.div>
