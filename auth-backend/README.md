@@ -59,3 +59,22 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Railway Deployment Checklist
+
+- Set production ENV in Railway: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `FRONTEND_URL`
+- Configure database ENV: `DB_CONNECTION=mysql` plus `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+- Configure Socialite ENV: `GOOGLE_*`, `GITHUB_*`, `FACEBOOK_*` and their redirect URIs
+- Configure mail (Brevo SMTP) ENV: `MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_ENCRYPTION`, `MAIL_FROM_*`
+- Set CORS/Sanctum ENV for the frontend domain: `CORS_ALLOWED_ORIGINS`, `SANCTUM_STATEFUL_DOMAINS`
+
+### Commands to Run on Railway
+
+```bash
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```

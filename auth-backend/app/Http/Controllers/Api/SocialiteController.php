@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\HTTP;
 
 class SocialiteController extends Controller
 {
@@ -42,13 +41,15 @@ class SocialiteController extends Controller
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            $frontendUrl = 'http://localhost:5173/auth/callback?token=' . $token;
+            $frontendBaseUrl = rtrim(config('app.frontend_url'), '/');
+            $frontendUrl = $frontendBaseUrl . '/auth/callback?token=' . $token;
 
             return redirect($frontendUrl);
 
         } catch (\Exception $e) {
             \Log::error('Socialite Callback Error for ' . $provider . ': ' . $e->getMessage());
-            return redirect('http://localhost:5173?error=social_login_failed');
+            $frontendBaseUrl = rtrim(config('app.frontend_url'), '/');
+            return redirect($frontendBaseUrl . '/?error=social_login_failed');
         }
     }
 }

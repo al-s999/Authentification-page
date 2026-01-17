@@ -36,7 +36,8 @@ class ForgotPasswordController extends Controller
             ]
         );
 
-        $resetLink = "http://localhost:5173/reset-password?token={$token}&email=" . urlencode($request->email);
+        $frontendBaseUrl = rtrim(config('app.frontend_url'), '/');
+        $resetLink = $frontendBaseUrl . "/reset-password?token={$token}&email=" . urlencode($request->email);
 
         Mail::to($request->email)->send(new ResetPasswordMail($resetLink));
 

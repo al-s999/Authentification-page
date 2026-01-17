@@ -1,5 +1,8 @@
 <?php
 
+$allowedOrigins = env('CORS_ALLOWED_ORIGINS', '*');
+$allowedOrigins = $allowedOrigins === '*' ? ['*'] : array_map('trim', explode(',', $allowedOrigins));
+
 return [
 
     /*
@@ -19,7 +22,7 @@ return [
 
     'allowed_methods' => ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => $allowedOrigins,
 
     'allowed_origins_patterns' => [],
 

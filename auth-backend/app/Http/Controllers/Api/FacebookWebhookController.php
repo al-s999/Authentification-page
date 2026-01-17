@@ -19,8 +19,9 @@ class FacebookWebhookController extends Controller
         //    Cari user berdasarkan ID yang dikirim Facebook dan hapus datanya.
 
         // 4. Kembalikan respons JSON yang sesuai dengan format yang diminta Facebook (200 OK)
+        $frontendBaseUrl = rtrim(config('app.frontend_url'), '/');
         return response()->json([
-            'url' => 'http://localhost:3000/deletion-status/' . $confirmationCode, // URL status di frontend React Anda
+            'url' => $frontendBaseUrl . '/deletion-status/' . $confirmationCode, // URL status di frontend React Anda
             'confirmation_code' => $confirmationCode
         ], 200); // Kode 200 (OK) sangat penting
     }
